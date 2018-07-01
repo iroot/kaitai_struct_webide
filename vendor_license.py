@@ -9,7 +9,7 @@ with open('vendor.yaml') as f: libs = yaml.safe_load(f)['libs']
 licResult = ''
 wikiResult = '# 3rd-party libraries\n\n'
 for libName in sorted(libs):
-    print "Processing %s" % libName
+    print("Processing %s" % libName)
     lib = libs[libName]
     distDir = ('_npm/' if 'npmDir' in lib else '') + (lib['distDir'] if 'distDir' in lib else lib['npmDir'])
     licFns = []
@@ -18,11 +18,11 @@ for libName in sorted(libs):
     licFns = list(set(licFns))
 
     if len(licFns) != 1:
-        print "License not found: %s: %r" % (distDir, licFns)
+        print("License not found: %s: %r" % (distDir, licFns))
         continue
 
     licResult += '='*80 + '\n'
-    licResult += ' '*((80 - len(libName)) / 2) + libName + '\n'
+    licResult += ' '*((80 - len(libName)) // 2) + libName + '\n'
     licResult += '\n'
     licResult += 'License name: %s\n' % lib['licenseName']
     licResult += '  License URL: %s\n' % lib['licenseUrl']
@@ -42,8 +42,8 @@ for libName in sorted(libs):
     wikiResult += 'License: %s (%s)\n\n' % (lib['licenseName'], lib['licenseUrl'])
 
     licResult += '='*80 + '\n'
-    with open(licFns[0],'rb') as f: licResult += f.read().strip().replace('\r\n', '\n') + '\n'
+    with open(licFns[0],'r') as f: licResult += f.read().strip().replace('\r\n', '\n') + '\n'
     licResult += '='*80 + '\n\n'
 
-open('LICENSE-3RD-PARTY.txt', 'wb').write(licResult.strip())
-open('docs/wiki/3rd-party-libraries.md', 'wb').write(wikiResult.strip())
+open('LICENSE-3RD-PARTY.txt', 'w').write(licResult.strip())
+open('docs/wiki/3rd-party-libraries.md', 'w').write(wikiResult.strip())

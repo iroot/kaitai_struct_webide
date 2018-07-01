@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-import BaseHTTPServer
-import SimpleHTTPServer
+import http.server
+import http.server
 import json
 import subprocess
 import re
 
 PORT = 8000
 
-class CheckerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class CheckerHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         def resp(statusCode, result):
             self.send_response(statusCode)
@@ -25,14 +25,14 @@ class CheckerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                     
                 with open('user.ksy', 'wt') as f: f.write(input['yaml'])
                 checkRes = subprocess.check_output('node checker.js user.ksy practice\%s\input.bin practice\%s\check.json' % (challName, challName));
-                print 'checkRes %r', checkRes
+                print('checkRes %r', checkRes)
                 resp(200, {'status': 'ok', 'check_res': json.loads(checkRes)});
             except Exception as e:
-                print e
+                print(e)
                 resp(400, {'status': 'exception'});
         else:
-            return SimpleHTTPServer.SimpleHTTPRequestHandler.do_POST(self)
+            return http.server.SimpleHTTPRequestHandler.do_POST(self)
             
 
 if __name__ == "__main__":
-    BaseHTTPServer.HTTPServer(("", PORT), CheckerHandler).serve_forever()
+    http.server.HTTPServer(("", PORT), CheckerHandler).serve_forever()

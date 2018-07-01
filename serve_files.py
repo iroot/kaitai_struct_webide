@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import SocketServer
-import BaseHTTPServer
+import socketserver
+import http.server
 import json
 import glob
 import os
@@ -25,13 +25,13 @@ else:
     secret = os.urandom(16).encode('hex')
     with open(secretFn, 'wt') as f: f.write(secret)
     
-print "Mappings:"
-for mapping in mappings.values():
+print("Mappings:")
+for mapping in list(mappings.values()):
     if not 'secret' in mapping:
         mapping['secret'] = secret
-    print " - %s (secret: %s)" % (mapping['path'], mapping['secret'])
+    print(" - %s (secret: %s)" % (mapping['path'], mapping['secret']))
     
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class MyHandler(http.server.BaseHTTPRequestHandler):
     def handleCors(self):
         origin = self.headers.getheader('origin')
         if origin in allowedOrigins:
@@ -113,5 +113,5 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.handleCors()
         self.end_headers()
 
-print "please use 127.0.0.1:%d on Windows (using localhost makes 1sec delay)" % PORT
-SocketServer.TCPServer(("", PORT), MyHandler).serve_forever()
+print("please use 127.0.0.1:%d on Windows (using localhost makes 1sec delay)" % PORT)
+socketserver.TCPServer(("", PORT), MyHandler).serve_forever()

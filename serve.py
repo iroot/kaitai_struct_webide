@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import SimpleHTTPServer
+import http.server
 import json
 import fnmatch
 import os
@@ -9,8 +9,8 @@ import threading
 import time
 import subprocess
 import re
-from SocketServer import ThreadingMixIn
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 PORT = 8000
 watchDirs = ['*.html', 'js/*', 'css/*', 'src/*.html']
@@ -36,14 +36,14 @@ def getLastChange(dirs):
     files = sorted(files, key=lambda x: x['modTime'], reverse=True)
     return files[0] if len(files) > 0 else None
 
-class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class MyHandler(http.server.SimpleHTTPRequestHandler):
     def resp(self, statusCode, result):
         self.send_response(statusCode)
         self.end_headers()
         self.wfile.write(json.dumps(result))
         
     def close_request(self):
-        print "Close"
+        print("Close")
         
     def do_GET(self):
         if self.path == '/onchange':
@@ -51,12 +51,12 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             while True:
                 time.sleep(0.5)
                 currChange = getLastChange(watchDirs)
-                if currChange and lastChange and currChange['modTime'] <> lastChange['modTime'] and not 'config.js' in currChange['fn']:
+                if currChange and lastChange and currChange['modTime'] != lastChange['modTime'] and not 'config.js' in currChange['fn']:
                     self.resp(200, { 'changed': True })
                     break
                 lastChange = currChange
         else:
-            return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+            return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
     def do_POST(self):
         if self.path == '/check':
@@ -72,26 +72,26 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                     
                 self.resp(200, {'status': 'ok', 'check_res': checkRes});
             except Exception as e:
-                print e
+                print(e)
                 self.resp(400, {'status': 'exception'});
         else:
-            return SimpleHTTPServer.SimpleHTTPRequestHandler.do_POST(self)
+            return http.server.SimpleHTTPRequestHandler.do_POST(self)
 
 if '--compile' in sys.argv:
-    print "Starting typescript compiler..."
+    print("Starting typescript compiler...")
     compileProcess = subprocess.Popen(compileCmd, shell=True)
 
 sys.dont_write_bytecode = True
 import genKaitaiFsFiles
 genKaitaiFsFiles.generate('')
     
-print "Please use 127.0.0.1:%d on Windows (using localhost makes 1sec delay)" % PORT
+print("Please use 127.0.0.1:%d on Windows (using localhost makes 1sec delay)" % PORT)
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
     """Handle requests in a separate thread."""
 
-print "Press Ctrl+C to exit."
+print("Press Ctrl+C to exit.")
 
 try:
     ThreadedHTTPServer(("", PORT), MyHandler).serve_forever()
@@ -99,5 +99,5 @@ except KeyboardInterrupt:
     pass
     
 if compileProcess:
-    print "Waiting for compiler to stop..."
+    print("Waiting for compiler to stop...")
     compileProcess.wait()
